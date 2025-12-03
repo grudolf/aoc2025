@@ -1,0 +1,45 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging / build
+build/
+dist/
+.eggs/
+*.egg-info/
+
+# Test/coverage
+.pytest_cache/
+.coverage*
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE/editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+
+# Environment / local overrides
+.env
+*.env
+*.local
