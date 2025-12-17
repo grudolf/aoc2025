@@ -1,6 +1,7 @@
 import logging
 import re
 from itertools import combinations
+from ortools.linear_solver import pywraplp
 
 
 def part1(all_states, all_buttons):
@@ -47,6 +48,43 @@ def convert_to_bits(state, buttons):
     return desired_state, button_values
 
 
+def part2(all_buttons, all_joltages):
+    total_presses = []
+    for buttons, joltage in zip(all_buttons, all_joltages):
+        result = solve_part2(buttons, joltage)
+        total_presses.append(result)
+    print("Total presses: ", total_presses)
+    return sum(total_presses)
+
+
+def solve_part2(buttons, joltage):
+    solver = pywraplp.Solver.CreateSolver('SAT')
+    logging.info(f'Buttons: {buttons}')
+    logging.info(f'Joltage: {joltage}')
+    # buttons: [[3], [1, 3], [2], [2, 3], [0, 2], [0, 1]]
+    # build variables: how many presses for each of the buttons
+    solver_vars = []
+    for i in range(len(buttons)):
+        v = solver.IntVar(0, solver.infinity(), f'x{i}')
+        solver_vars.append(v)
+    # joltage: [3, 5, 4, 7]
+    # formulas for joltage: sum of button presses increasing joltage == joltage
+    # presses for button[4](0, 2) + button[5](0, 1) == joltage[0] -> x4 + x5 = 3
+    # presses for button[1](1, 3) + button[5](0, 1) == joltage[1] -> x1 + x5 = 5
+    for j in range(len(joltage)):
+        expr = sum(solver_vars[i] for i in range(len(buttons)) if j in buttons[i])
+        solver.Add(expr == joltage[j])
+    solver.Minimize(solver.Sum(solver_vars))
+    status = solver.Solve()
+    if status == pywraplp.Solver.OPTIMAL:
+        logging.info(f'Presses: {[int(v.solution_value()) for v in solver_vars]}')
+        logging.info(f'Result : {int(solver.Objective().Value())}')
+        return int(solver.Objective().Value())
+    else:
+        logging.warning('No optimal solution.')
+        return 0
+
+
 def to_input(lines):
     state = []
     buttons = []
@@ -72,9 +110,9 @@ def test1():
     result = part1(state, buttons)
     print('Part 1:', result)
     assert result == 7
-    # result = part2(coords)
-    # print('Part 2:', result)
-    # assert result == 25272
+    result = part2(buttons, joltage)
+    print('Part 2:', result)
+    assert result == 33
 
 
 def main():
@@ -84,8 +122,8 @@ def main():
     print('Main')
     result = part1(state, buttons)
     print('Part 1:', result)
-    # result = part2(coords)
-    # print('Part 2:', result)
+    result = part2(buttons, joltage)
+    print('Part 2:', result)
 
 
 if __name__ == '__main__':
